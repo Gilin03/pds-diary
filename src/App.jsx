@@ -7,6 +7,7 @@ import {
 
 import { supabase } from './lib/supabase'
 import TodoSection from './components/TodoSection'
+import ReviewSection from './components/ReviewSection'
 import './App.css'
 
 const priorityLabels = {
@@ -75,7 +76,109 @@ function dateFromString(value) {
 
 function App() {
   const [plans, setPlans] = useState([])
+
+  async function exportAllData() {
+    try {
+      setError('')
+
+      const [
+        plansResult,
+        todosResult,
+        completionsResult,
+        executionsResult,
+        versionsResult,
+      ] = await Promise.all([
+        supabase.from('plans').select('*'),
+        supabase.from('todos').select('*'),
+        supabase.from('todo_completions').select('*'),
+        supabase.from('execution_records').select('*'),
+        supabase.from('plan_versions').select('*'),
+      ])
+
+      const results = [
+        ['plans', plansResult],
+        ['todos', todosResult],
+        ['todo_completions', completionsResult],
+        ['execution_records', executionsResult],
+        ['plan_versions', versionsResult],
+      ]
+
+      for (const [name, result] of results) {
+        if (result.error) {
+          throw new Error(
+            `${name} 조회 실패: ${result.error.message}`,
+          )
+        }
+      }
+
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        format: 'pds-diary-export-v1',
+
+        plans: plansResult.data || [],
+        todos: todosResult.data || [],
+        todo_completions:
+          completionsResult.data || [],
+        execution_records:
+          executionsResult.data || [],
+        plan_versions:
+          versionsResult.data || [],
+      }
+
+      const json = JSON.stringify(
+        exportData,
+        null,
+        2,
+      )
+
+      const blob = new Blob(
+        [json],
+        {
+          type: 'application/json;charset=utf-8',
+        },
+      )
+
+      const url =
+        URL.createObjectURL(blob)
+
+      const link =
+        document.createElement('a')
+
+      link.href = url
+      link.download =
+        `pds-diary-export-${new Date()
+          .toISOString()
+          .slice(0, 10)}.json`
+
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+
+      URL.revokeObjectURL(url)
+
+      setMessage(
+        '전체 자료를 JSON 파일로 내보냈습니다.',
+      )
+    } catch (caughtError) {
+      setError(
+        `자료 내보내기에 실패했습니다: ${caughtError.message}`,
+      )
+    }
+  }
+
   const [loading, setLoading] = useState(true)
+  const [activeView, setActiveView] = useState('plan')
+
+  function navigateTo(view, targetId) {
+    setActiveView(view)
+
+    requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    })
+  }
   const [saving, setSaving] = useState(false)
 
   const [message, setMessage] = useState('')
@@ -826,6 +929,14 @@ function App() {
             </span>
           </nav>
 
+          <button
+            type="button"
+            className="export-button"
+            onClick={exportAllData}
+          >
+            💾 자료 내보내기
+          </button>
+
           <div className="public-chip">
             🔓 로그인 없음
           </div>
@@ -850,29 +961,57 @@ function App() {
           </p>
 
           <button
-            className="side-item active"
+            className={`side-item ${activeView === 'plan' ? 'active' : ''
+              }`}
             type="button"
+            onClick={() =>
+              navigateTo(
+                'plan',
+                'plan-section',
+              )
+            }
           >
             📋 <span>내 계획</span>
           </button>
 
           <button
-            className="side-item"
+            className={`side-item ${activeView === 'todo' ? 'active' : ''
+              }`}
             type="button"
+            onClick={() =>
+              navigateTo(
+                'todo',
+                'todo-section',
+              )
+            }
           >
             ✅ <span>할 일</span>
           </button>
 
           <button
-            className="side-item"
+            className={`side-item ${activeView === 'execution' ? 'active' : ''
+              }`}
             type="button"
+            onClick={() =>
+              navigateTo(
+                'execution',
+                'todo-section',
+              )
+            }
           >
             ▶️ <span>실행 기록</span>
           </button>
 
           <button
-            className="side-item"
+            className={`side-item ${activeView === 'review' ? 'active' : ''
+              }`}
             type="button"
+            onClick={() =>
+              navigateTo(
+                'review',
+                'review-section',
+              )
+            }
           >
             📊 <span>돌아보기</span>
           </button>
@@ -907,7 +1046,10 @@ function App() {
             </span>
           </section>
 
-          <div className="dashboard-grid">
+          <div
+            className="dashboard-grid"
+            id="plan-section"
+          >
             <section className="panel calendar-panel">
               <div className="panel-header">
                 <div>
@@ -1018,8 +1160,8 @@ function App() {
                           key={dateLabel}
                           type="button"
                           className={`calendar-cell ${currentMonth
-                              ? ''
-                              : 'muted'
+                            ? ''
+                            : 'muted'
                             } ${today
                               ? 'today'
                               : ''
@@ -1159,8 +1301,8 @@ function App() {
                         return (
                           <div
                             className={`current-plan ${isActive
-                                ? 'selected-current-plan'
-                                : ''
+                              ? 'selected-current-plan'
+                              : ''
                               }`}
                             key={plan.id}
                             onClick={() => {
@@ -1754,9 +1896,19 @@ function App() {
           </div>
 
           {activePlan && (
-            <TodoSection
-              planId={activePlan.id}
-            />
+            <div id="todo-section">
+              <TodoSection
+                planId={activePlan.id}
+              />
+            </div>
+          )}
+          {activePlan && (
+            <div id="review-section">
+              <ReviewSection
+                planId={activePlan.id}
+                plan={activePlan}
+              />
+            </div>
           )}
         </main>
       </div>

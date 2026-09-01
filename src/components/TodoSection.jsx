@@ -557,6 +557,7 @@ function TodoSection({ planId }) {
                                 : item,
                     ),
             )
+            
 
             setEditingId(null)
             setEditForm(emptyForm)
@@ -717,6 +718,16 @@ function TodoSection({ planId }) {
                                 : item,
                     ),
             )
+
+            window.dispatchEvent(
+  new CustomEvent('todo-completion-changed', {
+    detail: {
+      todoId: todo.id,
+      completed:
+        nextStatus === 'completed',
+    },
+  }),
+)
 
             setMessage(
                 nextStatus ===
@@ -1018,6 +1029,12 @@ function TodoSection({ planId }) {
                 }),
             )
 
+            window.dispatchEvent(
+    new CustomEvent(
+        'execution-record-changed',
+    ),
+)
+
             setMessage(
                 '실행 시작 시각이 저장되었습니다.',
             )
@@ -1127,6 +1144,12 @@ function TodoSection({ planId }) {
             )
 
             setActiveExecutionId(null)
+
+            window.dispatchEvent(
+    new CustomEvent(
+        'execution-record-changed',
+    ),
+)
 
             setExecutionForm(
                 emptyExecutionForm,
@@ -1825,339 +1848,276 @@ function TodoSection({ planId }) {
                                 }
 
                                 return (
-                                    <article
-                                        key={
-                                            todo.id
-                                        }
-                                        className={`todo-card ${
-                                            completed
-                                                ? 'completed'
-                                                : ''
-                                        }`}
-                                    >
-                                        <div className="todo-main">
-                                            <button
-                                                type="button"
-                                                className="todo-check"
-                                                onClick={() =>
-                                                    toggleComplete(
-                                                        todo,
-                                                    )
-                                                }
-                                                disabled={
-                                                    saving
-                                                }
-                                                aria-label={
-                                                    completed
-                                                        ? '진행 중으로 되돌리기'
-                                                        : '완료 처리'
-                                                }
-                                            >
-                                                {completed
-                                                    ? '✓'
-                                                    : ''}
-                                            </button>
+                                   <article
+  key={todo.id}
+  className={`todo-card ${completed ? 'completed' : ''}`}
+>
+  <div className="todo-main">
+    <button
+      type="button"
+      className="todo-check"
+      onClick={() => toggleComplete(todo)}
+      disabled={saving}
+      aria-label={
+        completed
+          ? '진행 중으로 되돌리기'
+          : '완료 처리'
+      }
+    >
+      {completed ? '✓' : ''}
+    </button>
 
-                                            <div className="todo-details">
-                                                <div className="todo-title-row">
-                                                    <h3>
-                                                        {
-                                                            todo.title
-                                                        }
-                                                    </h3>
+    <div className="todo-details">
+      <div className="todo-title-row">
+        <h3>{todo.title}</h3>
 
-                                                    <span
-                                                        className={`todo-priority ${todo.priority}`}
-                                                    >
-                                                        {
-                                                            priorityLabels[
-                                                                todo.priority
-                                                            ]
-                                                        }
-                                                    </span>
-                                                </div>
+        <span
+          className={`todo-priority ${todo.priority}`}
+        >
+          {priorityLabels[todo.priority]}
+        </span>
+      </div>
 
-                                                <div className="todo-meta">
-                                                    <span>
-                                                        📅{' '}
-                                                        {todo.due_date ||
-                                                            '마감일 없음'}
-                                                    </span>
+      <div className="todo-meta">
+        <span>
+          📅 {todo.due_date || '마감일 없음'}
+        </span>
 
-                                                    <span>
-                                                        🏷️{' '}
-                                                        {todo.tag ||
-                                                            '태그 없음'}
-                                                    </span>
+        <span>
+          🏷️ {todo.tag || '태그 없음'}
+        </span>
 
-                                                    <span>
-                                                        ⏱️{' '}
-                                                        {
-                                                            todo.estimated_minutes
-                                                        }
-                                                        분
-                                                    </span>
+        <span>
+          ⏱️ {todo.estimated_minutes}분
+        </span>
+      </div>
+    </div>
+  </div>
 
-                                                    {completionMap[
-                                                        todo.id
-                                                    ] && (
-                                                        <span>
-                                                            ✅ 완료 기록 저장됨
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+  {/* 최근 실행 기록 요약 */}
+  {latestRecord && (
+    <div className="execution-summary">
+      <div className="execution-summary-head">
+        <span className="execution-summary-label">
+          ▶ 최근 실행
+        </span>
 
-                                        <div className="todo-actions">
-                                            <button
-                                                type="button"
-                                                className="action-button"
-                                                onClick={() =>
-                                                    startEditing(
-                                                        todo,
-                                                    )
-                                                }
-                                                disabled={
-                                                    saving
-                                                }
-                                            >
-                                                ✏️ 수정
-                                            </button>
+        <span className="execution-summary-count">
+          {records.length}회
+        </span>
+      </div>
 
-                                            <button
-                                                type="button"
-                                                className="action-button"
-                                                onClick={() =>
-                                                    openExecution(
-                                                        todo,
-                                                    )
-                                                }
-                                                disabled={
-                                                    saving
-                                                }
-                                            >
-                                                ▶️ 실행 기록
-                                            </button>
+      <div className="execution-summary-body">
+        <div>
+          <span>실제 시간</span>
+          <strong>
+            {latestRecord.actual_minutes}분
+          </strong>
+        </div>
 
-                                            <button
-                                                type="button"
-                                                className="action-button danger"
-                                                onClick={() =>
-                                                    deleteTodo(
-                                                        todo,
-                                                    )
-                                                }
-                                                disabled={
-                                                    saving
-                                                }
-                                            >
-                                                🗑 삭제
-                                            </button>
-                                        </div>
+        <div>
+          <span>시작</span>
+          <strong>
+            {latestRecord.started_at
+              ? new Date(
+                  latestRecord.started_at,
+                ).toLocaleString('ko-KR')
+              : '-'}
+          </strong>
+        </div>
 
-                                        {/* 실행 기록 요약 */}
+        <div>
+          <span>종료</span>
+          <strong>
+            {latestRecord.ended_at
+              ? new Date(
+                  latestRecord.ended_at,
+                ).toLocaleString('ko-KR')
+              : '진행 중'}
+          </strong>
+        </div>
 
-                                        {latestRecord && (
-                                            <div className="execution-summary">
-                                                <div className="execution-summary-title">
-                                                    ▶️ 최근 실행 기록
-                                                </div>
+        <div>
+          <span>막힘</span>
+          <strong>
+            {latestRecord.blocked_reason ||
+              '없음'}
+          </strong>
+        </div>
+      </div>
+    </div>
+  )}
 
-                                                <div className="execution-summary-grid">
-                                                    <span>
-                                                        시작:{' '}
-                                                        {latestRecord.started_at
-                                                            ? new Date(
-                                                                  latestRecord.started_at,
-                                                              ).toLocaleString(
-                                                                  'ko-KR',
-                                                              )
-                                                            : '-'}
-                                                    </span>
+  {/* 기본 버튼 */}
+  <div className="todo-actions">
+    <button
+      type="button"
+      className="action-button"
+      onClick={() => startEditing(todo)}
+      disabled={saving}
+    >
+      ✏️ 수정
+    </button>
 
-                                                    <span>
-                                                        종료:{' '}
-                                                        {latestRecord.ended_at
-                                                            ? new Date(
-                                                                  latestRecord.ended_at,
-                                                              ).toLocaleString(
-                                                                  'ko-KR',
-                                                              )
-                                                            : '진행 중'}
-                                                    </span>
+    <button
+      type="button"
+      className="action-button execution-button"
+      onClick={() => openExecution(todo)}
+      disabled={saving}
+    >
+      ▶ 실행 기록
+    </button>
 
-                                                    <span>
-                                                        실제 시간:{' '}
-                                                        {
-                                                            latestRecord.actual_minutes
-                                                        }
-                                                        분
-                                                    </span>
+    <button
+      type="button"
+      className="action-button danger"
+      onClick={() => deleteTodo(todo)}
+      disabled={saving}
+    >
+      🗑 삭제
+    </button>
+  </div>
 
-                                                    <span>
-                                                        막힘:{' '}
-                                                        {latestRecord.blocked_reason ||
-                                                            '없음'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
+  {/* 실행 기록 상세 - 버튼 눌렀을 때만 표시 */}
+  {executionTodoId === todo.id && (
+    <div className="execution-panel">
+      <div className="execution-panel-header">
+        <div>
+          <span className="execution-panel-kicker">
+            EXECUTION
+          </span>
 
-                                        {/* =========================
-                                            EXECUTION FORM
-                                        ========================= */}
+          <h4>
+            ▶ 실행 기록
+          </h4>
 
-                                        {executionTodoId ===
-                                            todo.id && (
-                                            <div className="execution-panel">
-                                                <div className="execution-panel-header">
-                                                    <div>
-                                                        <div className="execution-title">
-                                                            ▶️ 실행 기록
-                                                        </div>
+          <p>
+            {todo.title}
+          </p>
+        </div>
 
-                                                        <div className="execution-subtitle">
-                                                            {
-                                                                todo.title
-                                                            }
-                                                        </div>
-                                                    </div>
+        <button
+          type="button"
+          className="action-button"
+          onClick={closeExecution}
+          disabled={saving}
+        >
+          닫기
+        </button>
+      </div>
 
-                                                    <button
-                                                        type="button"
-                                                        className="action-button"
-                                                        onClick={
-                                                            closeExecution
-                                                        }
-                                                        disabled={
-                                                            saving
-                                                        }
-                                                    >
-                                                        닫기
-                                                    </button>
-                                                </div>
+      <div className="execution-fields">
+        <label className="form-label">
+          시작 시각
 
-                                                <div className="form-row">
-                                                    <label className="form-label">
-                                                        시작 시각
+          <input
+            type="datetime-local"
+            name="started_at"
+            value={
+              executionForm.started_at
+            }
+            onChange={
+              handleExecutionChange
+            }
+            disabled={
+              Boolean(
+                activeExecutionId,
+              ) || saving
+            }
+          />
+        </label>
 
-                                                        <input
-                                                            type="datetime-local"
-                                                            name="started_at"
-                                                            value={
-                                                                executionForm.started_at
-                                                            }
-                                                            onChange={
-                                                                handleExecutionChange
-                                                            }
-                                                            disabled={
-                                                                Boolean(
-                                                                    activeExecutionId,
-                                                                ) ||
-                                                                saving
-                                                            }
-                                                        />
-                                                    </label>
+        <label className="form-label">
+          종료 시각
 
-                                                    <label className="form-label">
-                                                        끝난 시각
+          <input
+            type="datetime-local"
+            name="ended_at"
+            value={
+              executionForm.ended_at
+            }
+            onChange={
+              handleExecutionChange
+            }
+            disabled={
+              !activeExecutionId ||
+              saving
+            }
+          />
+        </label>
+      </div>
 
-                                                        <input
-                                                            type="datetime-local"
-                                                            name="ended_at"
-                                                            value={
-                                                                executionForm.ended_at
-                                                            }
-                                                            onChange={
-                                                                handleExecutionChange
-                                                            }
-                                                            disabled={
-                                                                !activeExecutionId ||
-                                                                saving
-                                                            }
-                                                        />
-                                                    </label>
-                                                </div>
+      <label className="form-label execution-reason">
+        막혔던 이유
 
-                                                <label className="form-label">
-                                                    막혔던 이유
+        <textarea
+          name="blocked_reason"
+          value={
+            executionForm.blocked_reason
+          }
+          onChange={
+            handleExecutionChange
+          }
+          rows="3"
+          placeholder="막힌 부분이나 이유를 적어주세요."
+          disabled={
+            !activeExecutionId ||
+            saving
+          }
+        />
+      </label>
 
-                                                    <textarea
-                                                        name="blocked_reason"
-                                                        value={
-                                                            executionForm.blocked_reason
-                                                        }
-                                                        onChange={
-                                                            handleExecutionChange
-                                                        }
-                                                        rows="3"
-                                                        placeholder="예: Supabase RLS 권한 설정에서 막힘"
-                                                        disabled={
-                                                            !activeExecutionId ||
-                                                            saving
-                                                        }
-                                                    />
-                                                </label>
+      <div className="execution-metrics">
+        <div>
+          <span>예상 시간</span>
+          <strong>
+            {todo.estimated_minutes}분
+          </strong>
+        </div>
 
-                                                <div className="execution-preview">
-                                                    <span>
-                                                        예상 시간:{' '}
-                                                        {
-                                                            todo.estimated_minutes
-                                                        }
-                                                        분
-                                                    </span>
+        <div>
+          <span>현재 실제 시간</span>
+          <strong>
+            {executionForm.started_at &&
+            executionForm.ended_at
+              ? calculateActualMinutes(
+                  executionForm.started_at,
+                  executionForm.ended_at,
+                )
+              : 0}
+            분
+          </strong>
+        </div>
+      </div>
 
-                                                    <span>
-                                                        현재 실제 시간:{' '}
-                                                        {executionForm.started_at &&
-                                                        executionForm.ended_at
-                                                            ? calculateActualMinutes(
-                                                                  executionForm.started_at,
-                                                                  executionForm.ended_at,
-                                                              )
-                                                            : 0}
-                                                        분
-                                                    </span>
-                                                </div>
-
-                                                <div className="todo-actions">
-                                                    {!activeExecutionId ? (
-                                                        <button
-                                                            type="button"
-                                                            className="action-button primary"
-                                                            onClick={() =>
-                                                                startExecution(
-                                                                    todo,
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                saving
-                                                            }
-                                                        >
-                                                            ▶️ 실행 시작
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            type="button"
-                                                            className="action-button primary"
-                                                            onClick={() =>
-                                                                finishExecution(
-                                                                    todo,
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                saving
-                                                            }
-                                                        >
-                                                            ⏹ 실행 종료 및 저장
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </article>
+      <div className="execution-panel-actions">
+        {!activeExecutionId ? (
+          <button
+            type="button"
+            className="action-button primary"
+            onClick={() =>
+              startExecution(todo)
+            }
+            disabled={saving}
+          >
+            ▶ 실행 시작
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="action-button primary"
+            onClick={() =>
+              finishExecution(todo)
+            }
+            disabled={saving}
+          >
+            ⏹ 실행 종료 및 저장
+          </button>
+        )}
+      </div>
+    </div>
+  )}
+</article>
                                 )
                             },
                         )}

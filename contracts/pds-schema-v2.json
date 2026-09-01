@@ -1,0 +1,258 @@
+{
+  "name": "PlanDoSee Diary",
+  "version": "2",
+  "description": "Plan → Do → See 데이터 구조 계약서",
+  "tables": {
+    "plans": {
+      "description": "사용자가 세운 계획",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true
+        },
+        "title": {
+          "type": "text",
+          "required": true
+        },
+        "start_date": {
+          "type": "date",
+          "required": true
+        },
+        "end_date": {
+          "type": "date",
+          "required": true
+        },
+        "priority": {
+          "type": "text",
+          "required": true,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "success_criteria": {
+          "type": "text",
+          "required": true
+        },
+        "estimated_minutes": {
+          "type": "integer",
+          "required": true,
+          "unit": "minutes"
+        },
+        "created_at": {
+          "type": "timestamptz"
+        },
+        "updated_at": {
+          "type": "timestamptz"
+        }
+      }
+    },
+
+    "todos": {
+      "description": "계획에 속한 할 일",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true
+        },
+        "plan_id": {
+          "type": "uuid",
+          "required": true,
+          "references": "plans.id"
+        },
+        "title": {
+          "type": "text",
+          "required": true
+        },
+        "due_date": {
+          "type": "date",
+          "required": false
+        },
+        "priority": {
+          "type": "text",
+          "required": true,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "tag": {
+          "type": "text",
+          "required": false
+        },
+        "estimated_minutes": {
+          "type": "integer",
+          "required": true,
+          "unit": "minutes"
+        },
+        "status": {
+          "type": "text",
+          "required": true,
+          "values": [
+            "in_progress",
+            "completed"
+          ]
+        },
+        "created_at": {
+          "type": "timestamptz"
+        },
+        "updated_at": {
+          "type": "timestamptz"
+        }
+      }
+    },
+
+    "todo_completions": {
+      "description": "할 일의 완료 기록",
+      "columns": {
+        "todo_id": {
+          "type": "uuid",
+          "primary_key": true,
+          "references": "todos.id"
+        },
+        "completed_at": {
+          "type": "timestamptz",
+          "required": true
+        }
+      },
+      "constraints": {
+        "one_record_per_todo": true
+      }
+    },
+
+    "execution_records": {
+      "description": "실제로 수행한 작업 기록",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true
+        },
+        "todo_id": {
+          "type": "uuid",
+          "required": true,
+          "references": "todos.id"
+        },
+        "started_at": {
+          "type": "timestamptz",
+          "required": true
+        },
+        "ended_at": {
+          "type": "timestamptz",
+          "required": false
+        },
+        "actual_minutes": {
+          "type": "integer",
+          "required": true,
+          "unit": "minutes"
+        },
+        "blocked_reason": {
+          "type": "text",
+          "required": false
+        },
+        "created_at": {
+          "type": "timestamptz"
+        }
+      }
+    },
+
+    "plan_versions": {
+      "description": "계획 수정 전 상태를 보존하는 이력",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true
+        },
+        "plan_id": {
+          "type": "uuid",
+          "required": true,
+          "references": "plans.id"
+        },
+        "version": {
+          "type": "integer",
+          "required": true
+        },
+        "change_key": {
+          "type": "uuid",
+          "required": false
+        },
+        "title": {
+          "type": "text",
+          "required": true
+        },
+        "start_date": {
+          "type": "date",
+          "required": true
+        },
+        "end_date": {
+          "type": "date",
+          "required": true
+        },
+        "priority": {
+          "type": "text",
+          "required": true
+        },
+        "success_criteria": {
+          "type": "text",
+          "required": true
+        },
+        "estimated_minutes": {
+          "type": "integer",
+          "required": true,
+          "unit": "minutes"
+        },
+        "created_at": {
+          "type": "timestamptz"
+        }
+      }
+    }
+  },
+
+  "relationships": [
+    {
+      "from": "plans.id",
+      "to": "todos.plan_id",
+      "type": "one_to_many"
+    },
+    {
+      "from": "todos.id",
+      "to": "todo_completions.todo_id",
+      "type": "one_to_one"
+    },
+    {
+      "from": "todos.id",
+      "to": "execution_records.todo_id",
+      "type": "one_to_many"
+    },
+    {
+      "from": "plans.id",
+      "to": "plan_versions.plan_id",
+      "type": "one_to_many"
+    }
+  ],
+
+  "date_rules": {
+    "database_storage": "timestamptz values are stored as absolute timestamps",
+    "display_timezone": "Asia/Seoul",
+    "date_only_fields": [
+      "plans.start_date",
+      "plans.end_date",
+      "todos.due_date",
+      "plan_versions.start_date",
+      "plan_versions.end_date"
+    ],
+    "overdue_rule": "미완료 상태이고 due_date가 서울 시간 기준 오늘보다 이전이면 지연으로 계산한다.",
+    "completed_not_overdue": true
+  },
+
+  "aggregation_rules": {
+    "total_todos": "지우지 않은 할 일 수",
+    "completed_todos": "status가 completed인 할 일 수",
+    "overdue_todos": "완료되지 않았고 서울 시간 기준 오늘보다 due_date가 이전인 할 일 수",
+    "blocked_todos": "실행 기록 중 blocked_reason이 하나라도 있는 할 일 수",
+    "estimated_minutes": "대상 할 일의 estimated_minutes 합계",
+    "actual_minutes": "대상 할 일의 execution_records.actual_minutes 합계",
+    "time_difference": "실제 시간 - 예상 시간"
+  }
+}
