@@ -1,36 +1,108 @@
 # PlanDoSee Diary
 
-`PLAN → DO → SEE` 사이클을 한 화면에서 관리하는 React 웹 애플리케이션입니다. 계획과 실제 실행 사이의 차이를 기록하고, 돌아보기에서 얻은 개선점을 다음 계획으로 이어갈 수 있습니다.
+> 계획을 세우고, 실행을 기록하고, 결과를 돌아보는 `PLAN → DO → SEE` 작업 관리 앱입니다.
 
-## Demo
+PlanDoSee Diary는 계획과 실제 실행 사이의 차이를 기록하고, 돌아보기에서 얻은 개선점을 다음 계획으로 이어갈 수 있도록 구성했습니다.
 
-로컬 개발 서버에서 확인한 PLAN 화면입니다.
+![PlanDoSee Diary PLAN 화면](docs/images/overview.png)
 
-![PLAN 화면 개요](docs/assets/readme/01-overview.png)
+<p align="center">
+  <a href="https://github.com/Gilin03/pds-diary">GitHub Repository</a>
+</p>
 
-![계획 입력 폼](docs/assets/readme/02-main-feature.png)
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19.2.8-61DAFB?logo=react&logoColor=20232A" alt="React 19.2.8" />
+  <img src="https://img.shields.io/badge/Vite-8.2.2-646CFF?logo=vite&logoColor=white" alt="Vite 8.2.2" />
+  <img src="https://img.shields.io/badge/Supabase_JS-2.112.4-3ECF8E?logo=supabase&logoColor=white" alt="Supabase JS 2.112.4" />
+</p>
+
+## 목차
+
+- [프로젝트 소개](#프로젝트-소개)
+- [빠른 시작](#빠른-시작)
+- [사용 방법](#사용-방법)
+- [주요 기능](#주요-기능)
+- [기술 스택](#기술-스택)
+- [아키텍처](#아키텍처)
+- [데이터베이스 구조](#데이터베이스-구조)
+- [프로젝트 구조](#프로젝트-구조)
+- [검증](#검증)
+- [구현 포인트](#구현-포인트)
 
 ## 프로젝트 소개
 
-PlanDoSee Diary는 계획 수립, 할 일 실행, 결과 회고를 하나의 흐름으로 연결합니다. 계획별 할 일과 실행 시간을 기록하고, 완료율과 예상·실제 시간을 비교해 다음 행동을 정리할 수 있습니다.
+### 프로젝트 목표
+
+계획을 세우는 단계와 실제로 실행한 결과가 분리되면, 무엇이 잘 진행됐고 어디에서 막혔는지 확인하기 어렵습니다. 이 프로젝트는 계획, 할 일, 실행 기록, 회고를 하나의 흐름으로 연결해 다음 행동을 정리하는 것을 목표로 합니다.
+
+사용자는 계획별 할 일과 실행 시간을 남기고, 완료율·지연·막힘 상태와 예상 시간·실제 시간을 비교할 수 있습니다. 회고에서 작성한 개선점은 종료일 다음 날의 새 계획으로 이어집니다.
+
+## 빠른 시작
+
+### 요구 사항
+
+- Node.js와 npm
+- Supabase 프로젝트
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+### 설치 및 실행
+
+```bash
+git clone https://github.com/Gilin03/pds-diary.git
+cd pds-diary
+npm ci
+npm run dev
+```
+
+Vite가 출력한 로컬 주소를 브라우저에서 엽니다.
+
+### Production build 확인
+
+```bash
+npm run build
+npm run preview
+```
+
+`npm run build`로 프로덕션 번들을 생성한 뒤 `npm run preview`로 결과를 확인할 수 있습니다.
+
+## 사용 방법
+
+### 기본 사용 흐름
+
+1. PLAN에서 계획명, 시작일, 종료일, 우선순위, 성공 기준, 예상 시간을 입력합니다.
+2. 캘린더 날짜 또는 계획 카드를 선택해 작업 대상을 정합니다.
+3. DO에서 할 일을 추가하고 마감일, 태그, 우선순위, 예상 시간을 입력합니다.
+4. 실행 기록에서 시작·종료 시각과 막힌 이유를 저장합니다.
+5. SEE에서 완료율과 예상·실제 시간을 비교하고 집계 근거를 확인합니다.
+6. 개선점을 입력해 현재 계획의 종료일 다음 날에 새 계획을 만듭니다.
+
+### 옵션·권한·주의사항
+
+- 로그인이나 세션 절차 없이 사용하는 작업 공간입니다.
+- 앱 상단에 링크 공개 범위가 안내되므로 다른 사람이 봐도 괜찮은 내용만 입력해야 합니다.
+- 상단의 `💾 자료 내보내기` 버튼으로 계획과 관련 기록을 `pds-diary-export-v1` 형식의 JSON 파일로 다운로드할 수 있습니다.
 
 ## 주요 기능
 
-| 영역 | 기능 |
-| --- | --- |
-| PLAN | 월간 캘린더에서 계획 기간과 선택 날짜 확인 |
-| PLAN | 계획 생성·수정·삭제, 우선순위·기간·성공 기준·예상 시간 입력 |
-| PLAN | 계획 수정 전 상태를 버전 이력으로 보존하고 조회 |
-| PLAN | 전체 계획·할 일·완료·실행·버전 데이터를 JSON으로 다운로드 |
-| DO | 계획별 할 일 생성·수정·삭제 및 완료 상태 변경 |
-| DO | 마감일·우선순위·태그·예상 시간 관리 |
-| DO | 제목·태그 검색, 상태·우선순위·태그 필터, 정렬 |
-| DO | 실행 시작·종료 시각과 실제 소요 시간 저장 |
-| DO | 실행 중 막힌 이유 기록과 최근 실행 요약 표시 |
-| SEE | 전체·완료·지연·막힘 할 일 수와 완료율 표시 |
-| SEE | 예상 시간과 실제 실행 시간, 시간 차이 비교 |
-| SEE | 집계 카드에 포함된 할 일 근거와 할 일별 실행 정보 확인 |
-| SEE | 입력한 개선점을 종료일 다음 날의 새 계획으로 생성 |
+### PLAN — 계획 세우기
+
+- 월간 캘린더에서 계획 기간과 선택 날짜를 확인합니다.
+- 계획을 생성·수정·삭제하고 우선순위, 기간, 성공 기준, 예상 시간을 관리합니다.
+- 계획 수정 전 상태를 버전 이력으로 보존하고 조회합니다.
+
+### DO — 할 일과 실행 기록
+
+- 계획별 할 일을 생성·수정·삭제하고 완료 상태를 변경합니다.
+- 제목과 태그를 검색하고 상태·우선순위·태그로 필터링하거나 정렬합니다.
+- 실행 시작·종료 시각, 실제 소요 시간, 막힌 이유를 저장합니다.
+
+### SEE — 돌아보기
+
+- 전체·완료·지연·막힘 할 일 수와 완료율을 확인합니다.
+- 예상 시간과 실제 실행 시간, 시간 차이를 비교합니다.
+- 집계 카드에 포함된 할 일 근거와 할 일별 실행 정보를 확인합니다.
+- 개선점을 종료일 다음 날의 새 계획으로 생성합니다.
 
 ## 기술 스택
 
@@ -42,120 +114,22 @@ PlanDoSee Diary는 계획 수립, 할 일 실행, 결과 회고를 하나의 흐
 | Language | JavaScript + JSX | 애플리케이션 소스 |
 | Lint | Oxlint `1.79.0` | 정적 코드 검사 |
 
-## 시스템 구조
+## 아키텍처
 
 ```mermaid
 flowchart LR
-    User[사용자] --> App[React SPA]
-    App --> Plan[PLAN 계획]
-    App --> Do[DO 할 일·실행]
-    App --> See[SEE 돌아보기]
-    Plan --> Data[(Supabase)]
+    User["사용자"] --> App["React SPA"]
+    App --> Plan["PLAN: 계획"]
+    App --> Do["DO: 할 일·실행"]
+    App --> See["SEE: 돌아보기"]
+    Plan --> Data[("Supabase")]
     Do --> Data
     See --> Data
-    See --> Next[개선점을 다음 계획으로 전달]
+    See --> Next["개선점을 다음 계획으로 전달"]
     Next --> Plan
 ```
 
-브라우저에서 실행되는 React 컴포넌트가 Supabase JavaScript client를 통해 계획, 할 일, 완료 기록, 실행 기록, 수정 이력을 읽고 저장합니다.
-
-## 주요 동작 흐름
-
-1. PLAN에서 계획명, 기간, 우선순위, 성공 기준, 예상 시간을 입력합니다.
-2. 캘린더의 날짜 또는 계획 카드를 선택해 작업 대상을 정합니다.
-3. DO에서 할 일을 추가하고 마감일, 태그, 예상 시간을 관리합니다.
-4. 실행 기록에서 시작·종료 시각과 막힌 이유를 저장합니다.
-5. SEE에서 완료율과 예상·실제 시간을 비교하고 집계 근거를 확인합니다.
-6. 개선점을 입력하면 현재 계획의 종료일 다음 날에 새 계획이 생성됩니다.
-
-## 프로젝트 구조
-
-```text
-.
-├── contracts/
-│   └── pds-schema-v2.json   # Plan → Do → See 데이터 구조 계약서
-├── public/
-│   ├── favicon.svg
-│   └── icons.svg
-├── docs/
-│   └── assets/readme/        # README에 사용하는 실제 실행 화면 캡처
-├── src/
-│   ├── components/
-│   │   ├── ReviewSection.jsx
-│   │   └── TodoSection.jsx
-│   ├── assets/
-│   │   ├── hero.png
-│   │   ├── react.svg
-│   │   └── vite.svg
-│   ├── lib/
-│   │   └── supabase.js
-│   ├── App.jsx
-│   ├── App.css
-│   ├── index.css
-│   └── main.jsx
-├── index.html
-├── package.json
-├── package-lock.json
-└── vite.config.js
-```
-
-## 시작하기
-
-### 사전 요구사항
-
-- Node.js와 npm
-- Supabase 프로젝트
-- 아래 환경 변수 2개
-
-### 설치 및 실행
-
-```bash
-git clone https://github.com/Gilin03/pds-diary.git
-cd pds-diary
-npm ci
-npm run dev
-```
-
-Vite가 터미널에 출력한 로컬 주소를 브라우저에서 엽니다.
-
-프로덕션 빌드와 미리보기는 다음 명령으로 실행합니다.
-
-```bash
-npm run build
-npm run preview
-```
-
-## 환경 변수
-
-프로젝트 루트에 `.env` 파일을 만들고 다음 변수를 설정합니다. `.env`와 `.env.local`은 저장소에 커밋되지 않도록 `.gitignore`에 포함되어 있습니다.
-
-| 변수명 | 용도 |
-| --- | --- |
-| `VITE_SUPABASE_URL` | Supabase 프로젝트 URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | 브라우저용 Supabase publishable key |
-
-```env
-VITE_SUPABASE_URL=<your-supabase-project-url>
-VITE_SUPABASE_PUBLISHABLE_KEY=<your-supabase-publishable-key>
-```
-
-두 변수는 `src/lib/supabase.js`에서 `import.meta.env`로 읽어 Supabase client를 생성하는 데 사용합니다.
-
-## 사용 방법
-
-### PLAN — 계획 세우기
-
-계획명, 시작일, 종료일, 우선순위, 성공 기준, 예상 시간을 입력해 계획을 저장합니다. 캘린더에서 날짜를 선택하면 해당 날짜에 진행 중인 계획을 확인할 수 있습니다. 계획을 수정하면 수정 전 상태가 버전 이력에 남습니다.
-
-### DO — 할 일과 실행 기록
-
-선택한 계획에 할 일을 추가하고 마감일, 우선순위, 태그, 예상 시간을 입력합니다. 할 일을 완료 처리하거나 진행 중으로 되돌릴 수 있으며, 실행 기록에서 시작·종료 시각과 막힌 이유를 남길 수 있습니다.
-
-### SEE — 돌아보기
-
-완료율, 완료·지연·막힘 상태별 개수, 예상 시간과 실제 실행 시간을 확인합니다. 집계 카드와 할 일별 상세 내용을 통해 수치의 근거를 살펴보고, 개선점을 다음 계획의 성공 기준으로 넘길 수 있습니다.
-
-상단의 `💾 자료 내보내기` 버튼을 사용하면 계획과 관련 기록을 `pds-diary-export-v1` 형식의 JSON 파일로 다운로드합니다.
+React 컴포넌트가 브라우저에서 동작하며 Supabase JavaScript client를 통해 계획, 할 일, 완료 기록, 실행 기록, 수정 이력을 읽고 저장합니다.
 
 ## 데이터베이스 구조
 
@@ -177,7 +151,7 @@ erDiagram
     todos ||--o{ execution_records : records
 ```
 
-브라우저에서 사용하는 주요 Supabase 작업은 다음과 같습니다.
+주요 데이터 작업은 다음과 같습니다.
 
 - `plans`: 조회, 생성, 삭제, 계획 수정 RPC 호출
 - `todos`: 계획별 조회, 생성, 수정, 삭제, 상태 변경
@@ -188,25 +162,64 @@ erDiagram
 
 날짜 전용 필드는 `YYYY-MM-DD` 형식으로 사용하며, 지연 계산과 실행 시각 표시는 `Asia/Seoul` 기준을 사용합니다. 지연은 미완료 상태이고 마감일이 서울 시간 기준 오늘보다 이전인 할 일만 대상으로 합니다.
 
-## 보안 및 권한
+## 프로젝트 구조
 
-- 로그인 화면이나 세션 기반 인증 없이 사용하는 흐름이며, 앱 상단에 링크 공개 범위를 안내합니다.
-- Supabase URL과 publishable key는 환경 변수로 주입하며, 실제 키·토큰·비밀번호는 저장소에 올리지 않습니다.
-- 계획 입력은 계획명, 기간, 성공 기준, 예상 시간을 검증하고 종료일이 시작일보다 빠르지 않도록 합니다.
-- 할 일 입력은 제목을 검증하고 예상 시간을 0 이상의 정수로 제한합니다.
-- 실행 기록은 시작·종료 시각의 존재와 시간 순서를 검증하고 실제 시간은 두 시각의 차이로 계산합니다.
-- 삭제 전 확인 창을 표시하며 Supabase 조회·저장 오류는 화면의 오류 메시지로 표시합니다.
+```text
+.
+├── contracts/
+│   └── pds-schema-v2.json   # Plan → Do → See 데이터 구조 계약서
+├── docs/
+│   └── images/
+│       └── overview.png     # README 상단 대표 화면
+├── public/
+│   ├── favicon.svg
+│   └── icons.svg
+├── src/
+│   ├── components/
+│   │   ├── ReviewSection.jsx
+│   │   └── TodoSection.jsx
+│   ├── assets/
+│   │   ├── hero.png
+│   │   ├── react.svg
+│   │   └── vite.svg
+│   ├── lib/
+│   │   └── supabase.js
+│   ├── App.jsx
+│   ├── App.css
+│   ├── index.css
+│   └── main.jsx
+├── index.html
+├── package.json
+├── package-lock.json
+└── vite.config.js
+```
 
-## 테스트 및 검증
+## 검증
 
-| 검증 항목 | 실행·확인 | 결과 |
+### 명령어 검증
+
+| 구분 | 항목 | 명령 | 결과 |
+| --- | --- | --- | --- |
+| 자동 | 린트 | `npm run lint` | 종료 코드 0, 경고 11건 확인 |
+| 자동 | 프로덕션 빌드 | `npm run build` | Vite 빌드 통과, 63개 모듈 변환 |
+
+### 수동 확인 시나리오
+
+| 항목 | 절차 | 결과 |
 | --- | --- | --- |
-| 정적 검사 | `npm run lint` | 종료 코드 0, 경고 11건 확인 |
-| 프로덕션 빌드 | `npm run build` | Vite 빌드 통과, 63개 모듈 변환 및 `dist/` 생성 |
-| PLAN 화면 확인 | 로컬 개발 서버에서 실제 브라우저 렌더링 확인 | 캘린더와 계획 입력 폼 표시 확인 |
+| PLAN 첫 화면 | 로컬 개발 서버 접속 후 캘린더와 계획 입력 폼 확인 | 화면 렌더링 확인 |
+| 대표 이미지 | 실제 브라우저 화면을 `docs/images/overview.png`로 캡처 | 캡처 파일 확인 |
 
-## 개발 중 해결한 문제
+## 구현 포인트
 
 ### 계획 수정과 수정 이력의 일관성
 
-계획 수정 시 현재 계획 갱신과 수정 전 내용 보존을 브라우저의 여러 요청으로 나누지 않고 `update_plan_with_history` RPC 호출로 처리합니다. 수정 시작 시점의 `updated_at`을 함께 전달해 다른 수정이 먼저 완료된 경우를 구분하고, 화면에서는 동시에 실행 중인 수정 저장 요청을 막습니다.
+계획 수정 시 현재 계획 갱신과 수정 전 내용 보존을 브라우저의 여러 요청으로 나누지 않고 `update_plan_with_history` RPC 호출로 처리합니다. 수정 시작 시점의 `updated_at`과 `change_key`를 함께 전달해 다른 수정이 먼저 완료된 경우와 중복 저장을 구분하고, 화면에서는 동시에 실행 중인 수정 저장 요청을 막습니다.
+
+### 시간·날짜 기준 통일
+
+날짜 전용 값은 `YYYY-MM-DD`로 처리하고, 지연 여부와 실행 시각은 `Asia/Seoul` 기준으로 계산합니다. 실행 기록의 실제 시간은 시작·종료 시각의 차이로 계산합니다.
+
+### 기록 내보내기
+
+계획, 할 일, 완료 기록, 실행 기록, 수정 이력을 한 번에 조회해 `pds-diary-export-v1` JSON 구조로 묶어 다운로드합니다.
