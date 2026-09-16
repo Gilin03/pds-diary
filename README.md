@@ -1,4 +1,4 @@
-# PlanDoSee Diary
+# PlanDoSee Diary — 계획·실행·회고 기록 서비스
 
 > 계획을 세우고, 실행을 기록하고, 결과를 돌아보는 `PLAN → DO → SEE` 작업 관리 앱입니다.
 
@@ -7,7 +7,7 @@ PlanDoSee Diary는 계획과 실제 실행 사이의 차이를 기록하고, 돌
 ![PlanDoSee Diary PLAN 화면](docs/images/overview.png)
 
 <p align="center">
-  <a href="https://github.com/Gilin03/pds-diary">GitHub Repository</a>
+  <a href="https://github.com/Gilin03/plan-do-see-diary">GitHub Repository</a>
 </p>
 
 <p align="center">
@@ -49,8 +49,8 @@ PlanDoSee Diary는 계획과 실제 실행 사이의 차이를 기록하고, 돌
 ### 설치 및 실행
 
 ```bash
-git clone https://github.com/Gilin03/pds-diary.git
-cd pds-diary
+git clone https://github.com/Gilin03/plan-do-see-diary.git
+cd plan-do-see-diary
 npm ci
 npm run dev
 ```
